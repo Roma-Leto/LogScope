@@ -14,7 +14,7 @@ class LogEntry:
 
     timestamp: date
     ip: IPv4Address | IPv6Address
-    method: tuple
+    method: list
     path: str
     status: str
     response_time: int
