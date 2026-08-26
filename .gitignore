@@ -2,3 +2,8 @@
 __pycache__
 test_logs.txt
 fake_logs*
+de
+src/logscope.egg-info/dependency_links.txt
+src/logscope.egg-info/PKG-INFO
+src/logscope.egg-info/top_level.txt
+src/logscope.egg-info/SOURCES.txt
