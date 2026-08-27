@@ -18,3 +18,16 @@ class LogEntry:
     path: str
     status: int
     response_time: int
+
+
+@dataclass
+class AnalysisReport:
+    """Класс структуры данных анализатора"""
+
+    total_request: int
+    status_count: dict[int, int]
+    method_count: dict[str, int]
+    endpoint_count: dict[str, int]
+    avg_response_time: float
+    min_response_time: int
+    max_response_time: int
