@@ -52,7 +52,7 @@ def parse_line(line: str) -> LogEntry:
         ip = ip_address(result[1])
         method = _validate_method(result[2])
         path = _validate_path(result[3])
-        status = result[4]
+        status = int(result[4])
         response_time = int(result[5])
     except ValueError as e:
         raise InvalidLogLineError(f"Ошибка валидации: {e}") from e
@@ -85,7 +85,7 @@ def main():
 
     BASE_DIR = Path(__file__).resolve().parents[2]
 
-    log_file = str(BASE_DIR / "fake_logs_2026-08-26_14-55-41.txt")
+    log_file = str(BASE_DIR / "fake_logs_2026-08-25_06-30-09.txt")
 
     for _ in parse_file(path=log_file):  # изменить после написания анализатора
         pass

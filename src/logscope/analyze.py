@@ -3,26 +3,130 @@ analyze.py
 Модуль анализа данных
 """
 
+from collections import Counter, defaultdict
 from collections.abc import Iterator
+from dataclasses import asdict
 from pathlib import Path
 
+from logscope.models import AnalysisReport
 from logscope.parser import parse_file
 
 
 def count_by_total_request(data: Iterator) -> int:
     """Принимает генератор LogEntry и возвращает общее количество записей"""
-    total = 0
-    for _ in data:
-        total += 1
+    return sum(1 for _ in data)
+
+
+def count_by_status(data: Iterator) -> dict[int, int]:
+    """Подсчёт частоты статусов"""
+    counter = Counter()
+    for item in data:
+        counter[item.status] += 1
+    return counter
+
+
+def count_by_method(data: Iterator) -> dict[str, int]:
+    """Подсчёт частоты методов"""
+    total = {}
+
+    for item in data:
+        item_dict = asdict(item)
+        method = item_dict["method"]
+
+        if method not in total:
+            total[method] = 0
+
+        total[method] += 1
+
     return total
 
 
-def count_by_status(): ...
-def count_by_method(): ...
-def count_by_endpoint(): ...
-def average_response_time(): ...
-def min_response_time(): ...
-def max_response_time(): ...
+def count_by_endpoint(data: Iterator) -> dict[str, int]:
+    """Подсчёт частоты адресов"""
+    total = {}
+    for item in data:
+        item_dict = asdict(item)
+        endpoint = item_dict["path"]
+
+        if endpoint not in total:
+            total[endpoint] = 0
+        total[endpoint] += 1
+
+    return total
+
+
+def average_response_time(data: Iterator) -> int:
+    """Подсчёт среднего времени ответа сервера"""
+    total_time = 0
+    total_line = 0
+
+    for item in data:
+        item_dict = asdict(item)
+        total_time += item_dict["response_time"]
+        total_line += 1
+
+    return int(total_time / total_line)
+
+
+def min_response_time(data: Iterator) -> int:
+    """Определение минимального времени ответа сервера"""
+    min_time = float("inf")
+
+    for item in data:
+        item_dict = asdict(item)
+        time = item_dict["response_time"]
+        min_time = min(min_time, time)
+
+    return int(min_time)
+
+
+def max_response_time(data: Iterator) -> int:
+    """Определение максимального времени ответа сервера"""
+    max_time = 0
+
+    for item in data:
+        item_dict = asdict(item)
+        time = item_dict["response_time"]
+        max_time = max(max_time, time)
+
+    return int(max_time)
+
+
+def analyze(data: Iterator) -> AnalysisReport:
+    """Функция полного анализа записей лога"""
+    total_request = 0
+    status_count = defaultdict(int)
+    method_count = defaultdict(int)
+    endpoint_count = defaultdict(int)
+    avg_response_time = 0
+    min_time = float("inf")
+    max_time = 0
+    total_time = 0
+
+    for item in data:
+        print(f"{item=}")
+        total_request += 1
+        status_count[item.status] += 1
+        method_count[item.method] += 1
+        endpoint_count[item.path] += 1
+        if item.response_time > max_time:
+            max_time = item.response_time
+        elif item.response_time < min_time:
+            min_time = item.response_time
+        total_time += item.response_time
+        avg_response_time = total_time / total_request
+
+    return AnalysisReport(
+        total_request=total_request,
+        status_count=status_count,
+        method_count=dict(method_count),
+        endpoint_count=endpoint_count,
+        avg_response_time=avg_response_time,
+        min_response_time=int(min_time),
+        max_response_time=max_time,
+    )
+
+
 def main():
     """Точка входа для запуска анализатора"""
 
@@ -30,7 +134,7 @@ def main():
 
     log_file = str(BASE_DIR / "fake_logs_2026-08-25_06-30-09.txt")
 
-    print(count_by_total_request(parse_file(path=log_file)))
+    print(analyze(parse_file(path=log_file)))
 
 
 if __name__ == "__main__":
