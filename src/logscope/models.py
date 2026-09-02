@@ -31,3 +31,16 @@ class AnalysisReport:
     avg_response_time: float
     min_response_time: int
     max_response_time: int
+
+    def __repr__(self):
+        return (
+            f"AnalysisReport(\n"
+            f"  total_request={self.total_request},\n"
+            f"  status_count={dict(self.status_count)},\n"
+            f"  method_count={self.method_count},\n"
+            f"  endpoint_count={dict(self.endpoint_count)},\n"
+            f"  avg_response_time={self.avg_response_time:.2f},\n"
+            f"  min_response_time={self.min_response_time},\n"
+            f"  max_response_time={self.max_response_time}\n"
+            f")"
+        )
