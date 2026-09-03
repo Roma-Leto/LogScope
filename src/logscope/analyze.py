@@ -3,10 +3,10 @@ analyze.py
 Модуль анализа данных
 """
 
+import sys
 from collections import Counter, defaultdict
 from collections.abc import Iterator
 from dataclasses import asdict
-from pathlib import Path
 
 from logscope.models import AnalysisReport
 from logscope.parser import parse_file
@@ -104,17 +104,16 @@ def analyze(data: Iterator) -> AnalysisReport:
     total_time = 0
 
     for item in data:
-        print(f"{item=}")
         total_request += 1
         status_count[item.status] += 1
         method_count[item.method] += 1
         endpoint_count[item.path] += 1
-        if item.response_time > max_time:
-            max_time = item.response_time
-        elif item.response_time < min_time:
-            min_time = item.response_time
         total_time += item.response_time
-        avg_response_time = total_time / total_request
+
+        max_time = max(max_time, item.response_time)
+        min_time = min(min_time, item.response_time)
+
+        avg_response_time = (total_time / total_request) if total_request > 0 else 0
 
     return AnalysisReport(
         total_request=total_request,
@@ -127,15 +126,32 @@ def analyze(data: Iterator) -> AnalysisReport:
     )
 
 
-def main():
+def analyze_main(file_name: str):
     """Точка входа для запуска анализатора"""
 
-    BASE_DIR = Path(__file__).resolve().parents[2]
+    # BASE_DIR = Path(__file__).resolve().parents[2]
 
-    log_file = str(BASE_DIR / "fake_logs_2026-08-25_06-30-09.txt")
+    # log_file = str(BASE_DIR / "fake_logs_2026-08-25_06-30-09.txt")
+    try:
+        parsed_date = parse_file(path=file_name)
+        report = analyze(parsed_date)
 
-    print(analyze(parse_file(path=log_file)))
+        print("\n" + "=" * 40)
+        print("         РЕЗУЛЬТАТЫ АНАЛИЗА ЛОГОВ        ")
+        print("=" * 40)
+        print(f"Всего запросов:      {report.total_request}")
+        print(f"Статусы ответов:     {report.status_count}")
+        print(f"Методы:              {report.method_count}")
+        print(f"Топ эндпоинтов:      {report.endpoint_count}")
+        print(f"Минимальное время:   {report.min_response_time} мс")
+        print(f"Максимальное время:  {report.max_response_time} мс")
+        print(f"Среднее время:       {report.avg_response_time:.2f} мс")
+        print("=" * 40)
+
+    except FileNotFoundError:
+        print(f"Ошибка: Файл '{file_name}' не найден.", file=sys.stderr)
+        sys.exit(1)
 
 
 if __name__ == "__main__":
-    main()
+    analyze_main(file_name="")

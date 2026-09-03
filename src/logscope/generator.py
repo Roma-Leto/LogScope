@@ -4,10 +4,9 @@ generator.py
 Генератор файла логов.
 """
 
-import argparse
 import ipaddress
 import random
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from typing import TextIO
 
 http_methods = [
@@ -46,16 +45,16 @@ http_status_codes = [
 http_link = ["/users", "/orders", "/auth", "/login"]
 
 
-parser = argparse.ArgumentParser(
-    description="Генератор лог-файла", epilog="Пример: python generator.py --lines 1000"
-)
+# parser = argparse.ArgumentParser(
+#     description="Генератор лог-файла", epilog="Пример: python generator.py --lines 1000"
+# )
 
-parser.add_argument(
-    "--lines", default=1000, type=int, help="Количество записей (по умолчанию - 1000)."
-)
+# parser.add_argument(
+#     "--lines", default=1000, type=int, help="Количество записей (по умолчанию - 1000)."
+# )
 
-args = parser.parse_args()
-num_lines = args.lines
+# args = parser.parse_args()
+# num_lines = args.lines
 
 
 def create_log_line(time_line) -> list:
@@ -88,17 +87,20 @@ def record_fake_log(file_object: TextIO, log_line: list) -> None:
     file_object.write(log_data)
 
 
-def main():
+def generate_log(file_name: str | None, lines: int = 1000):
     """Управляющая функция"""
+
     start_time = datetime(2016, 5, 20, 12, 0)  # noqa: DTZ001
-    file_create_time = datetime.now(timezone.utc).strftime("%Y-%m-%d_%H-%M-%S")
-    file_name = f"fake_logs_{file_create_time}.txt"
+
+    if file_name is None:
+        file_create_time = datetime.now(UTC).strftime("%Y-%m-%d_%H-%M-%S")
+        file_name = f"fake_logs_{file_create_time}.txt"
     with open(file_name, "w", encoding="utf_8") as f:
-        for _ in range(1, args.lines + 1):
+        for _ in range(1, lines + 1):
             log_data_list = create_log_line(start_time)
             record_fake_log(f, log_data_list)
             start_time = start_time + timedelta(seconds=random.randint(1, 600))
 
 
 if __name__ == "__main__":
-    main()
+    generate_log(file_name=None)
